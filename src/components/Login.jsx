@@ -1,17 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [loading, setLoading] = useState(false);
-    // 1. New error state
     const [error, setError] = useState(''); 
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Track screen size
     
     const navigate = useNavigate();
 
+    // Handle screen resizing
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const handleChange = (e) => {
-        // Clear error message when user starts typing again
         if (error) setError(''); 
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -19,14 +25,13 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(''); // Clear previous errors
+        setError(''); 
         
         try {
             const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
             localStorage.setItem("userId", response.data.id);
             navigate("/home");
         } catch (error) {
-            // 2. Set specific error message
             setError("Invalid username or password."); 
         } finally {
             setLoading(false);
@@ -35,33 +40,48 @@ const Login = () => {
 
     return (
         <div style={styles.pageWrapper}>
-            <div style={styles.loginCard}>
+            <div style={{
+                ...styles.loginCard,
+                flexDirection: isMobile ? 'column' : 'row', // Stack vertically on mobile
+                gap: isMobile ? '30px' : '50px',
+                padding: isMobile ? '30px 20px' : '40px',
+                width: isMobile ? '90%' : 'auto'
+            }}>
                 
                 {/* Left Section */}
-                <div style={styles.leftSection}>
+                <div style={{
+                    ...styles.leftSection,
+                    borderRight: isMobile ? 'none' : '1px solid #333',
+                    borderBottom: isMobile ? '1px solid #333' : 'none',
+                    paddingRight: isMobile ? '0' : '50px',
+                    paddingBottom: isMobile ? '30px' : '0',
+                    width: isMobile ? '100%' : 'auto'
+                }}>
                     <div style={styles.logo}>✓</div>
                     <h1 style={styles.title}>TaskMaster</h1>
                     <p style={styles.subtitle}>Stay Productive.</p>
                 </div>
 
                 {/* Right Section */}
-                <div style={{ width: '260px' }}>
-                    <h2 style={styles.loginHeader}>Login</h2>
+                <div style={{ width: isMobile ? '100%' : '260px' }}>
+                    <h2 style={{...styles.loginHeader, textAlign: isMobile ? 'center' : 'left'}}>Login</h2>
                     
-                    {/* 3. Render Error Message UI */}
                     {error && (
                         <div style={styles.errorBadge}>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} style={styles.form}>
+                    <form onSubmit={handleLogin} style={{
+                        ...styles.form,
+                        alignItems: isMobile ? 'center' : 'flex-start'
+                    }}>
                         <input 
                             type="text" name="username" placeholder="Username" 
                             onChange={handleChange} required 
                             style={{
                                 ...styles.input,
-                                border: error ? '1px solid #ff5252' : '1px solid #444' // Highlight input on error
+                                border: error ? '1px solid #ff5252' : '1px solid #444' 
                             }} 
                         />
                         <input 
@@ -78,6 +98,7 @@ const Login = () => {
                             disabled={loading}
                             style={{ 
                                 ...styles.loginBtn, 
+                                width: isMobile ? '100%' : 'auto', // Full width button on mobile
                                 opacity: loading ? 0.7 : 1,
                                 cursor: loading ? 'not-allowed' : 'pointer'
                             }}
@@ -88,7 +109,11 @@ const Login = () => {
                         <button 
                             type="button" 
                             onClick={() => navigate("/register")}
-                            style={styles.registerLink} 
+                            style={{
+                                ...styles.registerLink,
+                                width: isMobile ? '100%' : 'auto',
+                                textAlign: 'center'
+                            }} 
                         >
                             Create New Account
                         </button>
@@ -101,31 +126,18 @@ const Login = () => {
 };
 
 const styles = {
-    pageWrapper: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#121212', color: '#ffffff', fontFamily: 'Arial, sans-serif' },
-    loginCard: { display: 'flex', alignItems: 'center', gap: '50px', padding: '40px', backgroundColor: '#1e1e1e', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' },
-    leftSection: { textAlign: 'center', borderRight: '1px solid #333', paddingRight: '50px' },
+    pageWrapper: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#121212', color: '#ffffff', fontFamily: 'Arial, sans-serif', padding: '20px', boxSizing: 'border-box' },
+    loginCard: { display: 'flex', alignItems: 'center', backgroundColor: '#1e1e1e', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', boxSizing: 'border-box' },
+    leftSection: { textAlign: 'center', boxSizing: 'border-box' },
     logo: { width: '80px', height: '80px', backgroundColor: '#333', borderRadius: '20px', margin: '0 auto 15px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '40px' },
     title: { margin: 0, fontSize: '28px', letterSpacing: '1px' },
     subtitle: { color: '#aaa', fontSize: '14px', marginTop: '5px' },
     loginHeader: { marginTop: 0, marginBottom: '20px', fontSize: '20px' },
-    form: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start' },
-    input: { width: '100%', padding: '10px', marginBottom: '15px', backgroundColor: '#2c2c2c', color: '#fff', borderRadius: '4px', boxSizing: 'border-box', outline: 'none' },
-    loginBtn: { padding: '8px 25px', backgroundColor: '#3d5afe', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold' },
+    form: { display: 'flex', flexDirection: 'column' },
+    input: { width: '100%', padding: '12px', marginBottom: '15px', backgroundColor: '#2c2c2c', color: '#fff', borderRadius: '4px', boxSizing: 'border-box', outline: 'none', fontSize: '16px' },
+    loginBtn: { padding: '12px 25px', backgroundColor: '#3d5afe', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold' },
     registerLink: { marginTop: '20px', background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '13px', padding: 0, textDecoration: 'underline' },
-    
-    // New Error Style
-    errorBadge: { 
-        backgroundColor: 'rgba(255, 82, 82, 0.1)', 
-        color: '#ff5252', 
-        padding: '8px', 
-        borderRadius: '4px', 
-        fontSize: '13px', 
-        marginBottom: '15px',
-        border: '1px solid #ff5252',
-        width: '100%',
-        boxSizing: 'border-box',
-        textAlign: 'center'
-    }
+    errorBadge: { backgroundColor: 'rgba(255, 82, 82, 0.1)', color: '#ff5252', padding: '8px', borderRadius: '4px', fontSize: '13px', marginBottom: '15px', border: '1px solid #ff5252', width: '100%', boxSizing: 'border-box', textAlign: 'center' }
 };
 
 export default Login;

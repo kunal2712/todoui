@@ -182,3 +182,47 @@
     border-right-color: var(--border);
   }
 }
+
+
+/* Specific Mobile Fixes for screens under 600px */
+@media (max-width: 600px) {
+  
+  /* 1. Scale down the Hero section so it doesn't overflow */
+  .hero {
+    transform: scale(0.8); /* Shrinks the complex 3D rotation slightly */
+    margin-bottom: -20px;
+  }
+
+  /* 2. Adjust the center alignment */
+  #center {
+    padding: 20px 15px;
+    gap: 15px;
+  }
+
+  /* 3. Force next-steps to be a single column stack */
+  #next-steps {
+    flex-direction: column;
+  }
+
+  /* 4. Make buttons and links easier to tap (fat-finger friendly) */
+  #next-steps ul {
+    flex-direction: column; /* Stack buttons vertically */
+    width: 100%;
+  }
+
+  #next-steps ul li {
+    flex: 1 1 100%; /* Take full width */
+  }
+
+  #next-steps ul a {
+    padding: 12px; /* Bigger tap target */
+    font-size: 14px;
+  }
+
+  /* 5. Handle the counter spacing */
+  .counter {
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+}
