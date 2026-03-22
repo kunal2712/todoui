@@ -60,7 +60,7 @@ const Home = () => {
         <div style={s.container}>
             <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                 <div style={s.header}>
-                    <h1 style={{ fontSize: isMobile ? '20px' : '24px' }}>My Tasks</h1>
+                    <h1 style={{color: '#aaa', fontSize: isMobile ? '20px' : '24px' }}>My Tasks</h1>
                     <button onClick={() => { localStorage.clear(); navigate("/"); }} style={s.logoutBtn}>Logout</button>
                 </div>
 

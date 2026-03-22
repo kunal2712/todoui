@@ -97,13 +97,13 @@ const Register = () => {
                     }}>
                         ✓
                     </div>
-                    <h1 style={{ margin: 0, fontSize: isMobile ? '24px' : '28px', letterSpacing: '1px' }}>TaskMaster</h1>
+                    <h1 style={{ color: '#aaa' ,margin: 0, fontSize: isMobile ? '24px' : '28px', letterSpacing: '1px' }}>TaskMaster</h1>
                     <p style={{ color: '#aaa', fontSize: '14px', marginTop: '5px' }}>Join the community.</p>
                 </div>
 
                 {/* Right Section: Form */}
                 <div style={{ width: isMobile ? '100%' : '280px' }}>
-                    <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px', textAlign: isMobile ? 'center' : 'left' }}>Sign Up</h2>
+                    <h2 style={{ color: '#aaa', marginTop: 0, marginBottom: '20px', fontSize: '20px', textAlign: isMobile ? 'center' : 'left' }}>Sign Up</h2>
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'flex-start' }}>
                         <input type="text" name="name" placeholder="Full Name" onChange={handleChange} required 
                             style={{ width: '100%', padding: '12px', marginBottom: '12px', backgroundColor: '#2c2c2c', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '16px', boxSizing: 'border-box' }} 
