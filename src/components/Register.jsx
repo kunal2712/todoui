@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 const Register = () => {
     const [formData, setFormData] = useState({ name: '', username: '', mail: '', password: '' });
     const [isRegistered, setIsRegistered] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // New state for loader
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const navigate = useNavigate();
 
-    // Track screen size for responsiveness
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
@@ -21,12 +21,15 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true); // Start loading
         try {
             await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/register', formData);
             setIsRegistered(true);
         } catch (error) {
             console.error("Error:", error.response?.data || error.message);
             alert("Registration failed.");
+        } finally {
+            setIsLoading(false); // Stop loading regardless of outcome
         }
     };
 
@@ -69,7 +72,7 @@ const Register = () => {
             {/* --- MAIN PAGE CONTENT --- */}
             <div style={{ 
                 display: 'flex', 
-                flexDirection: isMobile ? 'column' : 'row', // Responsive Direction
+                flexDirection: isMobile ? 'column' : 'row', 
                 alignItems: 'center', 
                 gap: isMobile ? '30px' : '50px', 
                 padding: isMobile ? '30px 20px' : '40px', 
@@ -79,7 +82,6 @@ const Register = () => {
                 maxWidth: isMobile ? '400px' : 'none'
             }}>
                 
-                {/* Left Section: Logo & Title */}
                 <div style={{ 
                     textAlign: 'center', 
                     borderRight: isMobile ? 'none' : '1px solid #333', 
@@ -101,7 +103,6 @@ const Register = () => {
                     <p style={{ color: '#aaa', fontSize: '14px', marginTop: '5px' }}>Join the community.</p>
                 </div>
 
-                {/* Right Section: Form */}
                 <div style={{ width: isMobile ? '100%' : '280px' }}>
                     <h2 style={{ color: '#aaa', marginTop: 0, marginBottom: '20px', fontSize: '20px', textAlign: isMobile ? 'center' : 'left' }}>Sign Up</h2>
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'flex-start' }}>
@@ -117,13 +118,27 @@ const Register = () => {
                         <input type="password" name="password" placeholder="Password" onChange={handleChange} required 
                             style={{ width: '100%', padding: '12px', marginBottom: '20px', backgroundColor: '#2c2c2c', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '16px', boxSizing: 'border-box' }} 
                         />
-                        <button type="submit" style={{ 
-                            padding: '12px 25px', backgroundColor: '#3d5afe', color: 'white', 
-                            border: 'none', borderRadius: '4px', cursor: 'pointer', 
-                            fontWeight: 'bold', width: isMobile ? '100%' : 'auto' 
-                        }}>
-                            Register
+                        
+                        {/* --- MODIFIED BUTTON WITH LOADER --- */}
+                        <button 
+                            type="submit" 
+                            disabled={isLoading} // Prevent double clicks
+                            style={{ 
+                                padding: '12px 25px', 
+                                backgroundColor: isLoading ? '#555' : '#3d5afe', 
+                                color: 'white', 
+                                border: 'none', borderRadius: '4px', 
+                                cursor: isLoading ? 'not-allowed' : 'pointer', 
+                                fontWeight: 'bold', width: isMobile ? '100%' : 'auto',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                transition: '0.3s'
+                            }}
+                        >
+                            {isLoading ? 'Registering...' : 'Register'}
                         </button>
+
                         <button type="button" onClick={() => navigate("/")} style={{ 
                             marginTop: '20px', background: 'none', border: 'none', 
                             color: '#aaa', cursor: 'pointer', fontSize: '13px', 
