@@ -8,10 +8,16 @@ const Home = () => {
     const [modal, setModal] = useState({ open: false, id: null });
     const [isAdding, setIsAdding] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 600); // Mobile threshold
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
 
     const navigate = useNavigate();
     const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+
+    // Helper to provide headers for Axios
+    const authConfig = {
+        headers: { Authorization: `Bearer ${token}` }
+    };
 
     // Handle Resize
     useEffect(() => {
@@ -21,10 +27,24 @@ const Home = () => {
     }, []);
 
     const fetchTodos = async () => {
+        if (!token || !userId) {
+            navigate("/");
+            return;
+        }
         try {
-            const res = await axios.get(`https://kdev-todo-api.onrender.com/api/todo/${userId}/todos`);
+            // Passed authConfig as the second argument for GET
+            const res = await axios.get(
+                `https://kdev-todo-api.onrender.com/api/todo/${userId}/todos`, 
+                authConfig
+            );
             setTodos(res.data);
-        } catch (err) { console.error(err); }
+        } catch (err) { 
+            console.error("Fetch error:", err);
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                localStorage.clear();
+                navigate("/");
+            }
+        }
     };
 
     useEffect(() => { fetchTodos(); }, []);
@@ -33,11 +53,16 @@ const Home = () => {
         e.preventDefault();
         setIsAdding(true);
         try {
-            await axios.post(`https://kdev-todo-api.onrender.com/api/todo/${userId}/save`, { ...newTodo, isCompleted: false });
+            // Passed authConfig as the THIRD argument for POST (Body is second)
+            await axios.post(
+                `https://kdev-todo-api.onrender.com/api/todo/${userId}/save`, 
+                { ...newTodo, isCompleted: false },
+                authConfig
+            );
             setNewTodo({ title: '', description: '' });
             await fetchTodos(); 
         } catch (err) { 
-            alert("Failed to save."); 
+            alert("Failed to save. Your session might have expired."); 
         } finally {
             setIsAdding(false);
         }
@@ -46,11 +71,15 @@ const Home = () => {
     const confirmDelete = async () => {
         setIsDeleting(true);
         try {
-            await axios.delete(`https://kdev-todo-api.onrender.com/api/todo/delete/${modal.id}`);
+            // Passed authConfig as the second argument for DELETE
+            await axios.delete(
+                `https://kdev-todo-api.onrender.com/api/todo/delete/${modal.id}`,
+                authConfig
+            );
             await fetchTodos();
             setModal({ open: false, id: null });
         } catch (err) { 
-            alert("Error"); 
+            alert("Error deleting task."); 
         } finally {
             setIsDeleting(false);
         }
@@ -67,7 +96,7 @@ const Home = () => {
                 <div style={s.card}>
                     <form onSubmit={handleAdd} style={{
                         ...s.form,
-                        flexDirection: isMobile ? 'column' : 'row' // Stack form on mobile
+                        flexDirection: isMobile ? 'column' : 'row'
                     }}>
                         <input placeholder="Title" required value={newTodo.title}
                             onChange={(e) => setNewTodo({...newTodo, title: e.target.value})} 
@@ -124,7 +153,6 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* MODAL remains centered for all screens */}
             {modal.open && (
                 <div style={s.overlay}>
                     <div style={{...s.modal, width: isMobile ? '85%' : '260px'}}>

@@ -29,7 +29,14 @@ const Login = () => {
         
         try {
             const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
+            
+            // 1. Store the JWT token (adjust 'token' if your backend uses a different key like 'jwt')
+            const token = response.data.token; 
+            localStorage.setItem("token", token);
+
+            // 2. Keep storing the userId if your app logic needs it
             localStorage.setItem("userId", response.data.id);
+            
             navigate("/home");
         } catch (error) {
             setError("Invalid username or password."); 
