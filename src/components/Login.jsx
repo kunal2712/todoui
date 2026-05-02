@@ -26,7 +26,7 @@ const Login = () => {
             setLoading(true);
             try {
                 const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
-                
+                console.log("FULL RESPONSE DATA:", response.data);
                 // Match the exact case from your JSON response
                 const token = response.data.accessToken; // Must be 'accessToken'
                 const userId = response.data.id;          // Must be 'id'
