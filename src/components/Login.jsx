@@ -21,38 +21,32 @@ const Login = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+   const handleLogin = async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            try {
+                const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
+                
+                // Match the exact case from your JSON response
+                const token = response.data.accessToken; // Must be 'accessToken'
+                const userId = response.data.id;          // Must be 'id'
 
-        try {
-            const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
-            
-            // Extracting values based on your updated JwtAuthResponse and Controller
-            const token = response.data.accessToken; 
-            const userId = response.data.id; 
-
-            if (token && userId) {
-                // Success: Store credentials and move to Home
-                localStorage.setItem("token", token);
-                localStorage.setItem("userId", userId);
-                navigate("/home");
-            } else {
-                // This would trigger if the backend update didn't deploy correctly
-                console.error("Missing expected data:", response.data);
-                setError("Login successful, but server data is incomplete.");
+                if (token && userId) {
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("userId", userId);
+                    
+                    // Navigate to home after successfully saving
+                    navigate("/home");
+                } else {
+                    console.error("Data missing from response:", response.data);
+                    setError("Server response missing required fields.");
+                }
+            } catch (error) {
+                setError("Invalid credentials.");
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error("Login Error:", error.response?.data || error.message);
-            setError(error.response?.status === 401 
-                ? "Invalid username or password." 
-                : "Unable to connect to server.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
+        };
     return (
         <div style={styles.pageWrapper}>
             <div style={{
