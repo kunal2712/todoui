@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,11 +6,10 @@ const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(''); 
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Track screen size
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     
     const navigate = useNavigate();
 
-    // Handle screen resizing
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
@@ -25,21 +24,30 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(''); 
-        
+        setError('');
+
         try {
             const response = await axios.post('https://kdev-todo-api.onrender.com/api/todo/auth/login', formData);
             
-            // 1. Store the JWT token (adjust 'token' if your backend uses a different key like 'jwt')
-            const token = response.data.token; 
-            localStorage.setItem("token", token);
+            // Extracting values based on your updated JwtAuthResponse and Controller
+            const token = response.data.accessToken; 
+            const userId = response.data.id; 
 
-            // 2. Keep storing the userId if your app logic needs it
-            localStorage.setItem("userId", response.data.id);
-            
-            navigate("/home");
+            if (token && userId) {
+                // Success: Store credentials and move to Home
+                localStorage.setItem("token", token);
+                localStorage.setItem("userId", userId);
+                navigate("/home");
+            } else {
+                // This would trigger if the backend update didn't deploy correctly
+                console.error("Missing expected data:", response.data);
+                setError("Login successful, but server data is incomplete.");
+            }
         } catch (error) {
-            setError("Invalid username or password."); 
+            console.error("Login Error:", error.response?.data || error.message);
+            setError(error.response?.status === 401 
+                ? "Invalid username or password." 
+                : "Unable to connect to server.");
         } finally {
             setLoading(false);
         }
@@ -49,13 +57,14 @@ const Login = () => {
         <div style={styles.pageWrapper}>
             <div style={{
                 ...styles.loginCard,
-                flexDirection: isMobile ? 'column' : 'row', // Stack vertically on mobile
+                flexDirection: isMobile ? 'column' : 'row', 
                 gap: isMobile ? '30px' : '50px',
                 padding: isMobile ? '30px 20px' : '40px',
-                width: isMobile ? '90%' : 'auto'
+                width: isMobile ? '90%' : 'auto',
+                maxWidth: isMobile ? '400px' : '800px'
             }}>
                 
-                {/* Left Section */}
+                {/* Branding Section */}
                 <div style={{
                     ...styles.leftSection,
                     borderRight: isMobile ? 'none' : '1px solid #333',
@@ -69,7 +78,7 @@ const Login = () => {
                     <p style={styles.subtitle}>Stay Productive.</p>
                 </div>
 
-                {/* Right Section */}
+                {/* Form Section */}
                 <div style={{ width: isMobile ? '100%' : '260px' }}>
                     <h2 style={{...styles.loginHeader, textAlign: isMobile ? 'center' : 'left'}}>Login</h2>
                     
@@ -105,7 +114,7 @@ const Login = () => {
                             disabled={loading}
                             style={{ 
                                 ...styles.loginBtn, 
-                                width: isMobile ? '100%' : 'auto', // Full width button on mobile
+                                width: isMobile ? '100%' : 'auto',
                                 opacity: loading ? 0.7 : 1,
                                 cursor: loading ? 'not-allowed' : 'pointer'
                             }}
@@ -126,7 +135,6 @@ const Login = () => {
                         </button>
                     </form>
                 </div>
-
             </div>
         </div>
     );
@@ -137,9 +145,9 @@ const styles = {
     loginCard: { display: 'flex', alignItems: 'center', backgroundColor: '#1e1e1e', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', boxSizing: 'border-box' },
     leftSection: { textAlign: 'center', boxSizing: 'border-box' },
     logo: { width: '80px', height: '80px', backgroundColor: '#333', borderRadius: '20px', margin: '0 auto 15px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '40px' },
-    title: {color: '#aaa' , margin: 0, fontSize: '28px', letterSpacing: '1px' },
+    title: { color: '#aaa', margin: 0, fontSize: '28px', letterSpacing: '1px' },
     subtitle: { color: '#aaa', fontSize: '14px', marginTop: '5px' },
-    loginHeader: {color: '#aaa', marginTop: 0, marginBottom: '20px', fontSize: '20px' },
+    loginHeader: { color: '#aaa', marginTop: 0, marginBottom: '20px', fontSize: '20px' },
     form: { display: 'flex', flexDirection: 'column' },
     input: { width: '100%', padding: '12px', marginBottom: '15px', backgroundColor: '#2c2c2c', color: '#fff', borderRadius: '4px', boxSizing: 'border-box', outline: 'none', fontSize: '16px' },
     loginBtn: { padding: '12px 25px', backgroundColor: '#3d5afe', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold' },
